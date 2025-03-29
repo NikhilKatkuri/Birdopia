@@ -14,7 +14,7 @@ export default function StarEffect() {
   const [stars, setStars] = useState<Star[]>([]);
 
   useEffect(() => {
-    const generatedStars: Star[] = [...Array(50)].map(() => ({
+    const generatedStars: Star[] = [...Array(80)].map(() => ({
       left: Math.random() * 100, // Random horizontal position
       size: Math.random() * 4 + 2, // Random size (2px to 6px)
       duration: 2 + Math.random() * 3, // Random fall speed (2s to 5s)
@@ -25,7 +25,7 @@ export default function StarEffect() {
   }, []);
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-black">
+    <div className="fixed w-screen h-screen overflow-hidden ">
       {stars.map((star, index) => (
         <div
           key={index}

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { UserInfoContextProvider } from "@/context/handlers/info.uploads";
+import { UserAuthDetailsProvider } from "@/context/handlers/info.user";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,7 +16,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Birdopia!",
-  description: "Experience seamless, distraction-free messaging for meaningful conversations",
+  description:
+    "Experience seamless, distraction-free messaging for meaningful conversations",
 };
 
 export default function RootLayout({
@@ -27,7 +30,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <UserAuthDetailsProvider>
+          <UserInfoContextProvider>{children}</UserInfoContextProvider>
+        </UserAuthDetailsProvider>
       </body>
     </html>
   );
