@@ -1,10 +1,12 @@
 "use client"
+import { useUserAuthDetails } from "@/context/handlers/info.user";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { FC } from "react";
 
 const Sidebar: FC = () => {
   const router =useRouter()
+  const {userNode}=useUserAuthDetails()
   const {user}=useParams()
   return (
     <div className=" h-full w-full p-2 py-4 ">
@@ -12,7 +14,7 @@ const Sidebar: FC = () => {
         <div className="grid grid-cols-1 gap-6 place-items-center">
           <button  onClick={()=>{router.push(`/${user}`)}} className=" rounded-xl hover:bg-stone-200/60 hover:shadow transition-all duration-200 ease-in-out active:scale-90 mb-6">
             <Image
-              src="/cherry.png"
+              src={userNode?.profilePicture || "/cherry.png"}
               alt=""
               width={32}
               height={32}

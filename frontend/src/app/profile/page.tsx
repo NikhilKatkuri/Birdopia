@@ -58,7 +58,7 @@ const Page: FC = () => {
       const uploadedUrl = await uploadImageToCloudinary(imageUri.file);
       if (uploadedUrl) {
         setimageUri({ ...imageUri, uri: uploadedUrl });
-        setUserProfileNode({ ...UserProfileNode, img: uploadedUrl });
+        setUserProfileNode({ ...UserProfileNode,profilePicture: uploadedUrl });
       } else {
         console.error("Failed to upload image.");
       }

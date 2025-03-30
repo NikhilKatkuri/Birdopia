@@ -1,18 +1,16 @@
-// Import the functions you need from the SDKs
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Import Firebase dependencies
 import { initializeApp } from "firebase/app";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   getAuth,
+  User,
 } from "firebase/auth";
-import {
-  getFirestore,
-  doc,
-  setDoc
-} from "firebase/firestore";
-import HashBase4 from "../Encryption/Hashing.mjs";
+import { getFirestore, doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { toast } from "react-toastify";
 
-// Firebase configuration
+// Firebase configuration (Move to .env.local)
 const firebaseConfig = {
   apiKey: "AIzaSyBit9HIQWIzOjU0LxeNuIOM9QDEuFcsN_8",
   authDomain: "bridopia.firebaseapp.com",
@@ -27,37 +25,90 @@ export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
+// Define user structure for Firestore
+interface UserProfile {
+  uid: string;
+  email: string;
+  name?: string;
+  profilePicture?: string;
+  bio?: string;
+  DOB?: string;
+  gender?: string;
+  location?: string;
+  followers: string[];
+  following: string[];
+  hidden: string[];
+  notifications: string[];
+  createdAt: any;
+  updatedAt: any;
+}
+
 // Sign-up function
-export const SignUpBase = async (email:string, password:string) => {
+export const SignUpBase = async (
+  email: string,
+  password: string
+): Promise<User | null> => {
   try {
+    if (!email || !password)
+      throw new Error("Email and password are required.");
+
+    // Firebase Auth handles password security
     const res = await createUserWithEmailAndPassword(auth, email, password);
     const user = res.user;
 
-    const hashedPassword = HashBase4(password,"4");  
-    if (!hashedPassword) throw new Error("Hashing function returned undefined.");
-
-    await setDoc(doc(db, "users", user.uid), {
+    // Store user profile in Firestore (WITHOUT password)
+    const userProfile: UserProfile = {
       uid: user.uid,
-      email: email,
-      password: hashedPassword, 
-    });
+      email,
+      name: "",
+      profilePicture: "",
+      bio: "",
+      DOB: "",
+      gender: "",
+      location: "",
+      followers: [],
+      following: [],
+      hidden: [],
+      notifications: [],
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
 
-    await setDoc(doc(db, "Chat", user.uid), {
-      Message: [],
-    });
+    await setDoc(doc(db, "users", user.uid), userProfile);
 
+    // Create empty chat collection for the user
+    await setDoc(doc(db, "Chat", user.uid), { Message: [] });
+
+    toast.success(`User signed up successfully`)
     console.log("User signed up successfully:", user);
-  } catch (error) {
-    console.error("Sign-up error:", error);
+    return user;
+  } catch (error: any) {
+    toast.error(`Sign-up error: ${error.message}`)
+    console.error("Sign-up error:", error.message);
+    return null;
   }
 };
 
 // Sign-in function
-export const SignInBase = async (email:string, password:string) => {
+export const SignInBase = async (
+  email: string,
+  password: string
+): Promise<User | null> => {
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    console.log("User signed in:", userCredential.user);
-  } catch (error) {
-    console.error("Sign-in error:", error);
+    if (!email || !password) {
+      throw new Error("Email and password are required.");
+    }
+
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    toast.success(`signed as ${userCredential.user} `);
+    return userCredential.user;
+  } catch (error: any) {
+    toast.error(`Sign-in error: ${error.message}`);
+    console.error("Sign-in error:", error.message);
+    return null;
   }
 };

@@ -8,11 +8,11 @@ export default function UserLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { UserName } = useUserAuthDetails();
+  const { userNode } = useUserAuthDetails();
 
   useEffect(() => {
-    document.title = UserName ? `${UserName}` : "Birdopia!"; // Fallback title
-  }, [UserName]);
+    document.title = userNode ? `${userNode.name}` : "Birdopia!"; // Fallback title
+  }, [userNode]);
 
   return <LayoutContextProvider>{children}</LayoutContextProvider>;
 }

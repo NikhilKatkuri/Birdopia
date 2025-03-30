@@ -7,7 +7,7 @@ import { db } from "@/lib/firebase/Base";
 interface Profile {
   name: string;
   bio: string;
-  img: string;
+  profilePicture: string;
 }
 
 const PageSearch: FC = () => {
@@ -24,7 +24,7 @@ const PageSearch: FC = () => {
         const profiles = qSnap.docs.map((doc) => doc.data() as Profile);
         setUsers(profiles);
       } else {
-        setUsers([]); // Clear users if no match
+        setUsers([]);  
       }
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -68,15 +68,15 @@ const PageSearch: FC = () => {
               className="p-4 bg-white shadow rounded-lg flex items-center gap-4 hover:bg-black/4 cursor-pointer"
             >
               <Image
-                src={user.img || "/default-avatar.png"} // Default avatar fallback
+                src={user.profilePicture  || "/default-avatar.png"} // Default avatar fallback
                 alt={user.name}
                 width={50}
                 height={50}
-                className="rounded-full"
+                className="rounded-full h-12 w-12 "
               />
               <div className="flex flex-col flex-grow">
                 <strong className="text-gray-800 text-sm">{user.name}</strong>
-                <span className="text-gray-500 text-xs">{user.bio}</span>
+                <span className="text-gray-500 text-xs line-clamp-2">{user.bio}</span>
               </div>
               <button className="h-8 px-4 bg-blue-500 text-white rounded-md text-xs hover:bg-blue-600">
                 Connect

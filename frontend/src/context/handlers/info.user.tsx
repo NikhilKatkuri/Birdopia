@@ -5,49 +5,70 @@ import {
   useState,
   ReactNode,
   useEffect,
+  useMemo,
 } from "react";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, User } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/Base";
 import { useRouter } from "next/navigation";
 import { doc, getDoc } from "firebase/firestore";
+
+// Define User Data Types
 interface UL {
   userBasic: string;
   userSecure: string;
 }
-interface US {
-  userBasic: string;
-  userSecure: string;
+
+interface US extends UL {
   userFirstName: string;
   userLastName: string;
 }
+
 interface Profile {
   name: string;
   bio: string;
   DOB: string;
   gender: string;
-  img: string;
+  profilePicture: string;
+}
+interface UserProfile {
+  uid: string;
+  email: string;
+  name?: string;
+  profilePicture?: string;
+  bio?: string;
+  DOB?: string;
+  gender?: string;
+  location?: string;
+  followers: string[];
+  following: string[];
+  hidden: string[];
+  notifications: string[];
+  createdAt: string;
+  updatedAt: string;
 }
 
-// Define the context type
+// Define Context Type
 type UserAuthDetailsType = {
   userLoginNode: UL;
   setUserLoginNode: (userLoginNode: UL) => void;
   userSignInNode: US;
-  setUserSignInNode: (userLoginNode: US) => void;
+  setUserSignInNode: (userSignInNode: US) => void;
   UserProfileNode: Profile;
   setUserProfileNode: (userProfileNode: Profile) => void;
-  UserUID: string;
-  setUserUID: (UserUID: string) => void;
+  UserUID: string | null;
+  setUserUID: (UserUID: string | null) => void;
   UserName: string;
   setUserName: (userName: string) => void;
+  userNode: UserProfile | null;
+  setUserNode: (userNode: UserProfile | null) => void;
 };
 
-// Create the context
+// Create Context
 const UserAuthDetails = createContext<UserAuthDetailsType | undefined>(
   undefined
 );
 
-// Provider component
+// Provider Component
 export const UserAuthDetailsProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
@@ -55,65 +76,104 @@ export const UserAuthDetailsProvider: React.FC<{ children: ReactNode }> = ({
     userBasic: "",
     userSecure: "",
   });
+
   const [userSignInNode, setUserSignInNode] = useState<US>({
     userBasic: "",
     userSecure: "",
     userFirstName: "",
     userLastName: "",
   });
+
   const [UserProfileNode, setUserProfileNode] = useState<Profile>({
     name: "",
     bio: "",
     DOB: "",
     gender: "",
-    img: "",
+    profilePicture: "",
   });
-  const [UserUID, setUserUID] = useState("");
+
+  const [userNode, setUserNode] = useState<UserProfile | null>(null);
+  const [UserUID, setUserUID] = useState<string | null>(null);
   const [UserName, setUserName] = useState<string>("");
+
   const router = useRouter();
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const uid = user.uid;
-        setUserUID(uid); // Ensure UserUID is set properly
+    const fetchUser = async (user: User | null) => {
+      if (!user) {
+        // If there's no user, check local storage
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          const parsedUser = JSON.parse(storedUser);
+          setUserNode(parsedUser);
+          setUserUID(parsedUser.uid);
+          setUserName(parsedUser.name || "");
 
-        if (uid) {
-          try {
-            const docRef = doc(db, "users", uid); // Use `uid`, not `UserUID`
-            const docSnap = await getDoc(docRef);
-
-            if (docSnap.exists() && docSnap.data().DOB && docSnap.data().name) {
-              router.push(`/${docSnap.data().name}`);
-              setUserName(docSnap.data().name);
-
-              return; // Prevents unnecessary navigation to "/profile"
-            }
-          } catch (error) {
-            console.error("Error fetching document:", error);
-          }
+          // If offline, do not navigate anywhere
+          return;
         }
 
-        router.replace("/profile");
-      } else {
+        // If no user and no stored data, redirect to login
         router.replace("/");
+        return;
       }
-    });
+
+      setUserUID(user.uid);
+
+      try {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data() as UserProfile;
+          setUserNode(userData);
+          setUserName(userData.name || "");
+
+          // Save user data to local storage
+          localStorage.setItem("user", JSON.stringify(userData));
+
+          // Navigate to user profile page
+          router.push(`/${userData.name}`);
+          return;
+        }
+
+        // If user has no profile data, redirect to profile setup
+        router.replace("/profile");
+      } catch (error) {
+        console.error("Error fetching user document:", error);
+      }
+    };
+
+    const unsubscribe = onAuthStateChanged(auth, fetchUser);
 
     return () => unsubscribe();
-  }, [router, setUserUID]);
+  }, [router]);
 
-  const values = {
-    userLoginNode,
-    setUserLoginNode,
-    userSignInNode,
-    setUserSignInNode,
-    UserProfileNode,
-    setUserProfileNode,
-    UserUID,
-    setUserUID,
-    UserName,
-    setUserName,
-  };
+  // Memoized Values for Performance Optimization
+  const values = useMemo(
+    () => ({
+      userLoginNode,
+      setUserLoginNode,
+      userSignInNode,
+      setUserSignInNode,
+      UserProfileNode,
+      setUserProfileNode,
+      UserUID,
+      setUserUID,
+      UserName,
+      setUserName,
+      userNode,
+      setUserNode,
+    }),
+    [
+      userLoginNode,
+      userSignInNode,
+      UserProfileNode,
+      UserUID,
+      UserName,
+      userNode,
+      setUserNode,
+    ]
+  );
+
   return (
     <UserAuthDetails.Provider value={values}>
       {children}
@@ -124,9 +184,10 @@ export const UserAuthDetailsProvider: React.FC<{ children: ReactNode }> = ({
 // Custom Hook
 export const useUserAuthDetails = () => {
   const context = useContext(UserAuthDetails);
-  if (!context)
+  if (!context) {
     throw new Error(
       "useUserAuthDetails must be used within a UserAuthDetailsProvider"
     );
+  }
   return context;
 };
