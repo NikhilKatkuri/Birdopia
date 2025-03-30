@@ -1,5 +1,6 @@
 "use client";
 import { useUserAuthDetails } from "@/context/handlers/info.user";
+import { SignUpBase } from "@/lib/firebase/Base";
 import { FC, useEffect, useRef, useState } from "react";
 
 const LoginFormBasic: FC = () => {
@@ -33,6 +34,9 @@ const LoginFormBasic: FC = () => {
       setvisibilitySignIN(false);
     }
   }, [userSignInNode.userSecure]);
+  const OnSubmitData=async () => {
+    await SignUpBase(userSignInNode.userBasic,userSignInNode.userSecure);
+  }
   return (
     <div className="h-[44rem]  max-sm:py-6 max-md:py-12 backdrop-blur-lg lg:h-[90vh] w-full p-8 bg-white/5   rounded-xl flex items-center justify-center  max-w-[600px] max-xl:mx-auto">
       {isLogin ? (
@@ -201,7 +205,7 @@ const LoginFormBasic: FC = () => {
           </div>
           <div className="flex items-center justify-center flex-col gap-8 w-full h-full">
             <div className="w-full sm:w-96 md:w-[28rem] mx-auto">
-              <form action={()=>{console.log(userSignInNode)}} className="">
+              <form action={()=>{OnSubmitData()}} className="">
                 <div className="flex flex-col gap-6 w-full sm:w-96 md:w-[26rem]   mx-auto">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="grid gap-2">

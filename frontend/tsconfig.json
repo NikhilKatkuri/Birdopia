@@ -22,6 +22,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/lib/Encryption/Hashing.mjs", "src/lib/Encryption/Encoding.js", "src/lib/Encryption/CharMap.mjs", "src/lib/Encryption/Decode.mjs"],
   "exclude": ["node_modules"]
 }

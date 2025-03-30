@@ -2,13 +2,55 @@
 import InputField from "@/component/reusable/InputFeild";
 import StarEffect from "@/component/reusable/StarsEffect";
 import { useUserInfoContext } from "@/context/handlers/info.uploads";
+import { useUserAuthDetails } from "@/context/handlers/info.user";
+import { db } from "@/lib/firebase/Base";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { FC } from "react";
 // profile
 
 const Page: FC = () => {
+  const router = useRouter();
   const { imageUploadRef, imageUri, ProfileImageHandler } =
     useUserInfoContext();
+  const { UserProfileNode, setUserProfileNode, UserUID } = useUserAuthDetails();
+  const updateDocument = async () => {
+    if (!UserUID) {
+      console.error("Error: UserUID is required.");
+      return;
+    }
+
+    // Remove empty values from userProfileNode
+    const filteredProfile = Object.fromEntries(
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      Object.entries(UserProfileNode).filter(([_, value]) => value !== "")
+    );
+
+    if (Object.keys(filteredProfile).length === 0) {
+      console.log("No valid fields to update.");
+      return;
+    }
+
+    const docRef = doc(db, "users", UserUID);
+
+    try {
+      await updateDoc(docRef, filteredProfile);
+      console.log("Document updated successfully!");
+
+      // Fetch updated document to get name
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        DataSeeker(docSnap.data().name);
+      }
+    } catch (error) {
+      console.error("Error updating document:", error);
+    }
+  };
+
+  const DataSeeker = (name: string) => {
+    if (name) router.push(`/${name}`);
+  };
   return (
     <div className="min-h-screen w-screen bg-[radial-gradient(#1D2B41_0%,#1D2B41_0%,#020509_100%)] flex items-center justify-center py-6 px-4 overflow-y-scroll">
       <StarEffect />
@@ -107,70 +149,113 @@ const Page: FC = () => {
             </div>
           </div>
           <div className="w-full max-md:h-[30rem] h-full   bg-slate-800 rounded-2xl p-6 shadow-lg">
-            <div className="h-64 grid grid-cols-1 gap-4 max-w-sm">
-              <div className="grid gap-2">
-                <label htmlFor="input" className="text-slate-400">
-                  User name
-                </label>
-                <InputField placeholder="" id="input" className="" />
-              </div>
-              <div className="grid gap-2">
-                <div className="flex justify-between items-center">
-                  <label htmlFor="bio" className="text-slate-400 text-sm">
-                    Bio
+            <form
+              action={() => {
+                updateDocument();
+              }}
+            >
+              <div className="h-64 grid grid-cols-1 gap-4 max-w-sm">
+                <div className="grid gap-2">
+                  <label htmlFor="input" className="text-slate-400">
+                    User name
                   </label>
-                  <span className="text-slate-300 text-xs">0 / 160</span>
+                  <InputField
+                    value={UserProfileNode.name}
+                    onChange={(e) => {
+                      setUserProfileNode({
+                        ...UserProfileNode,
+                        name: e.target.value,
+                      });
+                    }}
+                    placeholder=""
+                    id="input"
+                    className=""
+                  />
                 </div>
+                <div className="grid gap-2">
+                  <div className="flex justify-between items-center">
+                    <label htmlFor="bio" className="text-slate-400 text-sm">
+                      Bio
+                    </label>
+                    <span className="text-slate-300 text-xs">0 / 160</span>
+                  </div>
 
-                <textarea
-                  id="bio"
-                  name="bio"
-                  maxLength={160}
-                  placeholder="Write something about yourself..."
-                  className="h-12 bg-gray-50/5 placeholder:text-slate-500 text-slate-50 p-3 rounded-md resize-none outline-none border-2 border-transparent focus:border-slate-500 transition-all"
-                />
+                  <textarea
+                    id="bio"
+                    name="bio"
+                    value={UserProfileNode.bio}
+                    onChange={(e) => {
+                      setUserProfileNode({
+                        ...UserProfileNode,
+                        bio: e.target.value,
+                      });
+                    }}
+                    maxLength={160}
+                    placeholder="Write something about yourself..."
+                    className="h-12 bg-gray-50/5 placeholder:text-slate-500 text-slate-50 p-3 rounded-md resize-none outline-none border-2 border-transparent focus:border-slate-500 transition-all"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <label htmlFor="date" className="text-slate-400 text-sm">
+                    Date of Birth
+                  </label>
+                  <input
+                    type="date"
+                    value={UserProfileNode.DOB}
+                    onChange={(e) => {
+                      setUserProfileNode({
+                        ...UserProfileNode,
+                        DOB: e.target.value,
+                      });
+                    }}
+                    className="p-2 bg-gray-50/5 text-slate-400 rounded-md outline-none border-2 border-transparent focus:border-slate-500 transition-all"
+                  />
+                </div>
+                <div className="grid gap-2 ">
+                  <label htmlFor="gender" className="text-slate-400 text-sm">
+                    Gender
+                  </label>
+                  <select
+                    value={UserProfileNode.gender}
+                    onChange={(e) =>
+                      setUserProfileNode({
+                        ...UserProfileNode,
+                        gender: e.target.value,
+                      })
+                    }
+                    id="gender"
+                    className="h-10 px-4 bg-gray-50/5 text-slate-400 rounded-md outline-none border-2 border-transparent focus:border-slate-500 transition-all"
+                  >
+                    <option value="" hidden>
+                      Select Gender
+                    </option>
+                    <option value="male" className="bg-slate-800 text-white">
+                      Male
+                    </option>
+                    <option value="female" className="bg-slate-800 text-white">
+                      Female
+                    </option>
+                    <option value="other" className="bg-slate-800 text-white">
+                      Other
+                    </option>
+                  </select>
+                </div>
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <button
+                    type="reset"
+                    className="p-2 rounded-md  border-2 border-slate-600 text-white hover:bg-gray-600 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="p-2 rounded-md bg-green-600 text-white hover:bg-green-500 transition-all"
+                  >
+                    Continue
+                  </button>
+                </div>
               </div>
-              <div className="grid gap-2">
-                <label htmlFor="date" className="text-slate-400 text-sm">
-                  Date of Birth
-                </label>
-                <input
-                  type="date"
-                  className="p-2 bg-gray-50/5 text-slate-400 rounded-md outline-none border-2 border-transparent focus:border-slate-500 transition-all"
-                />
-              </div>
-              <div className="grid gap-2 ">
-                <label htmlFor="gender" className="text-slate-400 text-sm">
-                  Gender
-                </label>
-                <select
-                  id="gender"
-                  defaultValue="gender"
-                  className="h-10 px-4 bg-gray-50/5 text-slate-400 rounded-md outline-none border-2 border-transparent focus:border-slate-500 transition-all"
-                >
-                  <option value="  Select Gender" hidden>
-                    Select Gender
-                  </option>
-                  <option value="male" className="bg-slate-800 text-white">
-                    Male
-                  </option>
-                  <option value="female" className="bg-slate-800 text-white">
-                    Female
-                  </option>
-                  <option value="other" className="bg-slate-800 text-white">
-                    Other
-                  </option>
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                <button className="p-2 rounded-md  border-2 border-slate-600 text-white hover:bg-gray-600 transition-all">
-                  Cancel
-                </button>
-                <button className="p-2 rounded-md bg-green-600 text-white hover:bg-green-500 transition-all">
-                  Continue
-                </button>
-              </div>
-            </div>
+            </form>
           </div>
         </div>
       </main>

@@ -1,9 +1,10 @@
 "use client";
-import { FC } from "react";
+import { FC} from "react";
 import "./globals.css";
 import RainEffect from "@/component/reusable/RainEffect";
 import LoginFormBasic from "@/component/nonResuable/LoginFrom.basic";
 const Page: FC = () => {
+
   return (
     <main className="relative min-h-screen h-auto  bg-[radial-gradient(#1D2B41_0%,#1D2B41_0%,#020509_100%)] ">
       <RainEffect />
