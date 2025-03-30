@@ -10,6 +10,7 @@ import React, {
 interface ImageURI {
   uri: string;
   changed: boolean;
+  file?:File;
 }
 
 // Define the context type
@@ -35,6 +36,7 @@ export const UserInfoContextProvider: React.FC<{ children: ReactNode }> = ({
   const [imageUri, setimageUri] = useState<ImageURI>({
     uri: "/cherry.png",
     changed: false,
+
   });
   const imageUploadRef = useRef<HTMLInputElement | null>(null);
   const ProfileImageHandler = (
@@ -48,7 +50,7 @@ export const UserInfoContextProvider: React.FC<{ children: ReactNode }> = ({
 
       const fileExtension = file.name.split(".").pop()?.toLowerCase();
       if (fileExtension && allowedExtensions.includes(fileExtension)) {
-        setimageUri({ uri: URL.createObjectURL(file), changed: val });
+        setimageUri({ uri: URL.createObjectURL(file), changed: val ,file:file });
       } else {
         alert("Invalid file type! Please select an image (.png, .jpg, .jpeg, .gif, .svg, .webp).");
       }

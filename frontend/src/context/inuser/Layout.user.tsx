@@ -8,6 +8,7 @@ import {
   ReactNode,
   useEffect,
 } from "react";
+import { useParams, usePathname } from "next/navigation";
 
 interface DM {
   width: number;
@@ -45,14 +46,16 @@ export const LayoutContextProvider: React.FC<{ children: ReactNode }> = ({
     };
   }, []);
   const value = { Dimention, setDimention };
+  const {user,chatuser}=useParams();
+  const pn =usePathname();
   if (Dimention.width <= 600) {
     return (
       <LayoutContext.Provider value={value}>
         <div className="relative flex flex-col">
           <main className="">{children}</main>
-          <footer className="fixed bottom-0 z-20">
+          {!(pn ===`/${user}/chat/${chatuser}`) && <footer className="fixed bottom-2 h-24  z-[20] shadow     flex   items-center w-full">
             <BottomBar />
-          </footer>
+          </footer>}
         </div>
       </LayoutContext.Provider>
     );

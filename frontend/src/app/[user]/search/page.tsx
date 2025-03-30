@@ -1,18 +1,41 @@
-import { FC } from "react";
+"use client";
+import { FC, useState } from "react";
 import Image from "next/image";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { db } from "@/lib/firebase/Base";
 
-const users = [
-  { id: 1, name: "Sharanya", bio: "Web Developer", img: "/cherry.png" },
-  { id: 2, name: "Nikhil", bio: "Software Engineer", img: "/profile2.png" },
-  { id: 3, name: "Cherry", bio: "UI/UX Designer", img: "/profile3.png" },
-];
+interface Profile {
+  name: string;
+  bio: string;
+  img: string;
+}
 
 const PageSearch: FC = () => {
+  const [search, setSearch] = useState("");
+  const [users, setUsers] = useState<Profile[]>([]);
+
+  const Searcher = async () => {
+    try {
+      const userRef = collection(db, "users");
+      const q = query(userRef, where("name", "==", search));
+      const qSnap = await getDocs(q);
+
+      if (!qSnap.empty) {
+        const profiles = qSnap.docs.map((doc) => doc.data() as Profile);
+        setUsers(profiles);
+      } else {
+        setUsers([]); // Clear users if no match
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
+
   return (
-    <div className="h-full w-full">
-      <header className="h-16 w-full flex items-center justify-between bg-white border-b border-gray-300">
+    <div className="h-full w-full relative">
+      <header className="sticky top-0 h-16 w-full flex items-center justify-between bg-white border-b border-gray-300">
         <div className="w-[calc(100%-5rem)] h-12 flex items-center gap-3 ml-3 px-2 rounded-md">
-          <span>
+          <button onClick={Searcher}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -25,23 +48,46 @@ const PageSearch: FC = () => {
                 clipRule="evenodd"
               />
             </svg>
-          </span>
-          <input type="text" placeholder="Search users..." className="w-full outline-0 text-base" />
+          </button>
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            type="text"
+            placeholder="Search users..."
+            className="w-full outline-0 text-base"
+          />
         </div>
         <div className="w-12"></div>
       </header>
 
       <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {users.map((user) => (
-          <div key={user.id} className="p-4 bg-white shadow rounded-lg flex items-center gap-4">
-            <Image src={user.img} alt={user.name} width={50} height={50} className="rounded-full" />
-            <div className="flex flex-col flex-grow">
-              <strong className="text-gray-800 text-sm">{user.name}</strong>
-              <span className="text-gray-500 text-xs">{user.bio}</span>
+        {users.length > 0 ? (
+          users.map((user) => (
+            <div
+              key={user.name}
+              className="p-4 bg-white shadow rounded-lg flex items-center gap-4 hover:bg-black/4 cursor-pointer"
+            >
+              <Image
+                src={user.img || "/default-avatar.png"} // Default avatar fallback
+                alt={user.name}
+                width={50}
+                height={50}
+                className="rounded-full"
+              />
+              <div className="flex flex-col flex-grow">
+                <strong className="text-gray-800 text-sm">{user.name}</strong>
+                <span className="text-gray-500 text-xs">{user.bio}</span>
+              </div>
+              <button className="h-8 px-4 bg-blue-500 text-white rounded-md text-xs hover:bg-blue-600">
+                Connect
+              </button>
             </div>
-            <button className="h-8 px-4 bg-blue-500 text-white rounded-md text-xs hover:bg-blue-600">Connect</button>
-          </div>
-        ))}
+          ))
+        ) : (
+          <p className="text-gray-500 text-center col-span-full">
+            No users found.
+          </p>
+        )}
       </div>
     </div>
   );

@@ -1,139 +1,153 @@
 "use client";
 
-import Image from "next/image";
-import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useLayoutContext } from "@/context/inuser/Layout.user";
+import { useParams, usePathname, useRouter } from "next/navigation";
 
 export default function UserChatLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { user } = useParams();
+  const { Dimention } = useLayoutContext();
   const router = useRouter();
-  const [openDialogUsers, setopenDialogUsers] = useState(true);
-  return (
-    <>
-      <div className="h-full w-full bg-gray-50">
-        <header className="h-16 w-full border-b border-gray-300 flex items-center  bg-white ">
-          <div className={`flex items-center justify-between ${openDialogUsers?"w-80":"w-16"} transition-all duration-300 ease-in-out  pl-4`}>
-            <button
-              onClick={() => setopenDialogUsers((prev) => !prev)}
-              className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 hover:shadow-md active:scale-90 transition-all duration-200 ease-in-out"
-            >
-              <div
-                className={`transform transition-transform ${
-                  openDialogUsers ? "rotate-0" : "rotate-180"
-                }`}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="size-6 text-gray-700"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-            </button>
-          </div>
-          <div className="flex items-center">
-            <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-              <span>S</span>
-            </div>
-            <div className="ml-4">
-              <strong className="text-gray-800">Sharanya</strong>
-              <p className="text-gray-500 text-xs">Online</p>
-            </div>
-          </div>
-        </header>
-
-        <div className="flex w-full h-[calc(100%-4rem)] overflow-hidden">
-          {/* Sidebar */}
-          <aside
-            className={`h-full bg-white   border-r border-gray-200 transition-all duration-300 ease-in-out ${
-              openDialogUsers ? "w-80 px-2" : "w-0 overflow-hidden"
-            }`}
-          >
-            {/* Users List */}
-            <div
-              className={`h-full overflow-y-auto space-y-4 py-4 ${
-                !openDialogUsers && "opacity-0"
-              }`}
-            >
-              {[
-                "Sharanya",
-                "Cherry",
-                "Nikhil",
-                "Aryan",
-                "Sanya",
-                "Rohan",
-                "Meera",
-                "Akash",
-                "Pooja",
-                "Vikram",
-                "Aisha",
-                "Rahul",
-                "Neha",
-                "Kabir",
-                "Sakshi",
-                "Arjun",
-                "Tanya",
-                "Sameer",
-                "Kriti",
-                "Dev",
-              ].map((t, i) => (
-                <div
-                  key={i}
-                  onClick={() => {
-                    router.push(`/${user}/chat/${t}`);
-                  }}
-                  className="h-16 w-full rounded-lg bg-white flex items-center px-4 hover:bg-gray-100 transition-all"
-                >
-                  {/* Profile Picture */}
-                  <div className="relative w-12">
-                    <Image
-                      src="/cherry.png"
-                      alt="Profile"
-                      width={40}
-                      height={40}
-                      className="rounded-full"
-                      priority
+  const { user, chatuser } = useParams();
+  const pn = usePathname();
+  if (Dimention.width <= 768) {
+    return (
+      <>
+        <div className="h-full w-full relative">
+          {!(pn === `/${user}/chat/${chatuser}`) && (
+            <header className="h-16 w-full z-[300] sticky top-0 border-b border-slate-300 bg-white px-3  p-2  flex items-center justify-around gap-4">
+              <button className="min-w-10 h-10 flex items-center justify-center rounded-md bg-stone-200/60 hover:shadow transition-all duration-200 ease-in-out active:scale-90">
+                <span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="size-6"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3.75 9h16.5m-16.5 6.75h16.5"
                     />
-                    <div className="h-3 w-3 rounded-full bg-green-500 absolute right-0 bottom-0 border border-white"></div>
-                  </div>
-
-                  {/* User Details */}
-                  <div className="flex flex-col ml-4 w-[70%]">
-                    <strong className="text-gray-800 text-sm">{t}</strong>
-                    <div className="grid grid-cols-[0.6fr_0.4fr]">
-                      <span className="text-gray-500 text-xs line-clamp-1 overflow-hidden text-ellipsis">
-                        Hi! This is a long message that will be clamped to one
-                        line...
-                      </span>
-                      <span className="text-gray-400 text-xs text-right">
-                        10 min ago
-                      </span>
+                  </svg>
+                </span>
+              </button>
+              <div className="flex items-center gap-2 w-full px-4 py-2 h-11 rounded-3xl bg-black/4">
+                <span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="size-6"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                    />
+                  </svg>
+                </span>
+                <input
+                  type="text"
+                  placeholder="search..."
+                  className="w-[90%] outline-0"
+                />
+              </div>
+            </header>
+          )}
+          <main className="h-screen flex relative">
+            {false && (
+              <div className="h-full w-full absolute  bg-white grid grid-cols-1 gap-1 px-2 py-3">
+                {Array.from({ length: 20 }).map((_, i) => (
+                  <div
+                    key={i}
+                    onClick={() => {
+                      router.push(`/${user}/chat/${i}`);
+                    }}
+                    className="w-full h-16 bg-stone-50 rounded-md flex items-center px-4 gap-4"
+                  >
+                    <div className="h-10 w-10 rounded-full bg-stone-200 animate-pulse"></div>
+                    <div className="grid gap-1">
+                      <div className="h-4 w-56 rounded-3xl bg-stone-200 animate-pulse"></div>
+                      <div className="h-4 w-24 rounded-3xl bg-stone-200 animate-pulse"></div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </aside>
-
-          {/* Chat Window */}
-          <div
-            className={`h-full overflow-hidden transition-all duration-300 ${
-              openDialogUsers ? "w-[calc(100%-20rem)]" : "w-full"
-            }`}
-          >
+                ))}
+              </div>
+            )}
             {children}
-          </div>
+          </main>
         </div>
+      </>
+    );
+  }
+  return (
+    <>
+      <div className="h-screen w-full relative grid  lg:grid-cols-[0.8fr_1.2fr] xl:grid-cols-[0.6fr_1.4fr] overflow-hidden">
+        {/* Sidebar */}
+        <aside className="h-full flex flex-col overflow-y-auto bg-white border-r border-slate-300">
+          {/* Header */}
+          <header className="min-h-16 w-full sticky top-0 z-[300] border-b border-slate-300 bg-white px-3 p-2 flex items-center justify-between gap-4">
+            {/* Menu Button */}
+            <button className="w-10 min-w-[2.5rem] h-10 flex items-center justify-center rounded-md bg-stone-200/60 hover:shadow transition-all duration-200 ease-in-out active:scale-90">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-6 h-6"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9h16.5m-16.5 6.75h16.5" />
+              </svg>
+            </button>
+
+            {/* Search Bar */}
+            <div className="flex items-center gap-2 w-full px-4 py-2 h-11 rounded-3xl bg-black/5">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-6 h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                />
+              </svg>
+              <input type="text" placeholder="Search..." className="w-full outline-none bg-transparent" />
+            </div>
+          </header>
+
+          {/* Chat List */}
+          <div className="flex-1 px-2 py-3">
+            {Array.from({ length: 20 }).map((_, i) => (
+              <div
+                key={i}
+                onClick={() => router.push(`/${user}/chat/${i}`)}
+                className="w-full h-16 bg-stone-50 rounded-md flex items-center px-4 gap-4 cursor-pointer hover:bg-stone-100 transition"
+              >
+                <div className="h-10 w-10 rounded-full bg-stone-200 animate-pulse"></div>
+                <div className="grid gap-1">
+                  <div className="h-4 w-56 rounded-3xl bg-stone-200 animate-pulse"></div>
+                  <div className="h-4 w-24 rounded-3xl bg-stone-200 animate-pulse"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <main className="h-full w-full bg-white ">{children}</main>
       </div>
     </>
   );

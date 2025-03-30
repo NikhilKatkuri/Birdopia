@@ -1,5 +1,11 @@
 "use client";
-import { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/Base";
 import { useRouter } from "next/navigation";
@@ -19,6 +25,7 @@ interface Profile {
   bio: string;
   DOB: string;
   gender: string;
+  img: string;
 }
 
 // Define the context type
@@ -29,10 +36,10 @@ type UserAuthDetailsType = {
   setUserSignInNode: (userLoginNode: US) => void;
   UserProfileNode: Profile;
   setUserProfileNode: (userProfileNode: Profile) => void;
-  UserUID:string;
-  setUserUID:(UserUID:string)=>void;
-  UserName:string;
-  setUserName:(userName:string)=>void;
+  UserUID: string;
+  setUserUID: (UserUID: string) => void;
+  UserName: string;
+  setUserName: (userName: string) => void;
 };
 
 // Create the context
@@ -59,10 +66,11 @@ export const UserAuthDetailsProvider: React.FC<{ children: ReactNode }> = ({
     bio: "",
     DOB: "",
     gender: "",
+    img: "",
   });
-  const [UserUID, setUserUID] = useState("")
-  const [UserName, setUserName] = useState<string>("")
-const router =useRouter();
+  const [UserUID, setUserUID] = useState("");
+  const [UserName, setUserName] = useState<string>("");
+  const router = useRouter();
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -76,8 +84,8 @@ const router =useRouter();
 
             if (docSnap.exists() && docSnap.data().DOB && docSnap.data().name) {
               router.push(`/${docSnap.data().name}`);
-              setUserName(docSnap.data().name)
-              
+              setUserName(docSnap.data().name);
+
               return; // Prevents unnecessary navigation to "/profile"
             }
           } catch (error) {
@@ -91,8 +99,8 @@ const router =useRouter();
       }
     });
 
-    return () => unsubscribe();  
-  }, [router, setUserUID]); 
+    return () => unsubscribe();
+  }, [router, setUserUID]);
 
   const values = {
     userLoginNode,
@@ -101,8 +109,10 @@ const router =useRouter();
     setUserSignInNode,
     UserProfileNode,
     setUserProfileNode,
-    UserUID, setUserUID,
-    UserName, setUserName
+    UserUID,
+    setUserUID,
+    UserName,
+    setUserName,
   };
   return (
     <UserAuthDetails.Provider value={values}>

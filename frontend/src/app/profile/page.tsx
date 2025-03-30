@@ -4,6 +4,7 @@ import StarEffect from "@/component/reusable/StarsEffect";
 import { useUserInfoContext } from "@/context/handlers/info.uploads";
 import { useUserAuthDetails } from "@/context/handlers/info.user";
 import { db } from "@/lib/firebase/Base";
+import uploadImageToCloudinary from "@/lib/imageuploads/Cloudinary.uploads";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -12,7 +13,7 @@ import { FC } from "react";
 
 const Page: FC = () => {
   const router = useRouter();
-  const { imageUploadRef, imageUri, ProfileImageHandler } =
+  const { imageUploadRef, imageUri, ProfileImageHandler, setimageUri } =
     useUserInfoContext();
   const { UserProfileNode, setUserProfileNode, UserUID } = useUserAuthDetails();
   const updateDocument = async () => {
@@ -45,6 +46,24 @@ const Page: FC = () => {
       }
     } catch (error) {
       console.error("Error updating document:", error);
+    }
+  };
+  const uploadImg = async () => {
+    if (!imageUri?.file) {
+      console.error("No image file selected.");
+      return;
+    }
+
+    try {
+      const uploadedUrl = await uploadImageToCloudinary(imageUri.file);
+      if (uploadedUrl) {
+        setimageUri({ ...imageUri, uri: uploadedUrl });
+        setUserProfileNode({ ...UserProfileNode, img: uploadedUrl });
+      } else {
+        console.error("Failed to upload image.");
+      }
+    } catch (error) {
+      console.error("Error uploading image:", error);
     }
   };
 
@@ -121,7 +140,10 @@ const Page: FC = () => {
                     />
                   </svg>
                 </button>
-                <button className="h-8 w-8 rounded-full flex items-center justify-center text-green-600 bg-green-300 active:scale-95 transition-all ease-in-out duration-150">
+                <button
+                  onClick={uploadImg}
+                  className="h-8 w-8 rounded-full flex items-center justify-center text-green-600 bg-green-300 active:scale-95 transition-all ease-in-out duration-150"
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
